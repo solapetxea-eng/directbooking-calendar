@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DirectBooking Calendar | Reservas directas sin comisiones</title>
+  <meta name="description" content="Calendario inteligente de reservas directas para casas rurales, apartamentos y pequeños alojamientos turísticos. Sin comisiones, sin cuotas y sincronizado con Booking y Airbnb." />
+  <style>
+    :root{
+      --bg:#f6f3ef;
+      --card:#ffffff;
+      --soft:#efe7df;
+      --line:#ded4ca;
+      --text:#2f2a26;
+      --muted:#6f675f;
+      --brand:#6c4cf1;
+      --brand-2:#e66bb0;
+      --ok:#2f9b63;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:22px;
+      --max:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,#f8f5f1 0%,#f2ece6 100%);
+      line-height:1.55;
+    }
+
+    a{text-decoration:none;color:inherit}
+    img{max-width:100%;display:block}
+
+    .wrap{
+      width:min(var(--max), calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(10px);
+      background:rgba(246,243,239,.88);
+      border-bottom:1px solid rgba(222,212,202,.8);
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      min-height:72px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    .brand-badge{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:900;
+      box-shadow:var(--shadow);
+    }
+
+    .nav-links{
+      display:flex;
+      gap:20px;
+      align-items:center;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:48px;
+      padding:0 20px;
+      border-radius:999px;
+      border:1px solid transparent;
+      font-weight:700;
+      transition:.2s ease;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--brand),#7d61f4);
+      color:#fff;
+      box-shadow:0 12px 24px rgba(108,76,241,.25);
+    }
+
+    .btn-secondary{
+      background:#fff;
+      border-color:var(--line);
+      color:var(--text);
+    }
+
+    .hero{
+      padding:72px 0 42px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:34px;
+      align-items:center;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--muted);
+      padding:8px 14px;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:18px;
+    }
+
+    h1{
+      font-size:clamp(2.2rem, 5vw, 4.2rem);
+      line-height:1.03;
+      margin:0 0 18px;
+      letter-spacing:-1.4px;
+    }
+
+    .hero p.lead{
+      font-size:1.12rem;
+      color:var(--muted);
+      margin:0 0 28px;
+      max-width:700px;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-bottom:22px;
+    }
+
+    .hero-points{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .mini-point{
+      background:rgba(255,255,255,.78);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:14px;
+      color:var(--text);
+    }
+
+    .hero-card{
+      background:linear-gradient(180deg,#fff 0%,#fbf9f7 100%);
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:24px;
+    }
+
+    .calendar-mock{
+      border:1px solid var(--line);
+      border-radius:20px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .calendar-head{
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:700;
+    }
+
+    .legend{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:14px 16px 8px;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      background:#faf7f4;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:7px 12px;
+      color:var(--muted);
+    }
+
+    .dot{
+      width:11px;
+      height:11px;
+      border-radius:999px;
+      display:inline-block;
+    }
+
+    .dot-green{background:#9dd8ad}
+    .dot-pink{background:#e66bb0}
+    .dot-purple{background:#7157e8}
+    .dot-mix{background:linear-gradient(135deg,#e66bb0 0%, #7157e8 100%)}
+
+    .months{
+      padding:14px 16px 18px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+    }
+
+    .month{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      background:#fcfbfa;
+    }
+
+    .month strong{
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+    }
+
+    .days{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:5px;
+    }
+
+    .day{
+      aspect-ratio:1/1;
+      border-radius:8px;
+      background:#cfe9d3;
+    }
+
+    .busy-a{background:#e8b2cf}
+    .busy-b{background:#b9adf5}
+    .busy-all{background:linear-gradient(135deg,#e66bb0 0%, #7157e8 100%)}
+    .free{background:#bfe2c5}
+
+    .section{
+      padding:38px 0;
+    }
+
+    .section-head{
+      text-align:center;
+      max-width:860px;
+      margin:0 auto 30px;
+    }
+
+    .section-head h2{
+      font-size:clamp(1.8rem, 4vw, 3rem);
+      margin:0 0 10px;
+      letter-spacing:-.8px;
+    }
+
+    .section-head p{
+      margin:0;
+      color:var(--muted);
+      font-size:1.05rem;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .card .icon{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(108,76,241,.12), rgba(230,107,176,.14));
+      display:grid;
+      place-items:center;
+      font-size:22px;
+      margin-bottom:14px;
+    }
+
+    .card h3{
+      margin:0 0 10px;
+      font-size:1.08rem;
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      font-size:.97rem;
+    }
+
+    .steps{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+    }
+
+    .step{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+
+    .step-num{
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      color:#fff;
+      font-weight:800;
+      margin-bottom:14px;
+    }
+
+    .compare{
+      overflow:auto;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:760px;
+    }
+
+    th,td{
+      text-align:left;
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+    }
+
+    th{
+      background:#faf7f4;
+      font-size:14px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+
+    td strong{font-size:1rem}
+    .good{color:var(--ok);font-weight:800}
+    .bad{color:#a16464;font-weight:700}
+
+    .pricing{
+      display:grid;
+      grid-template-columns:.9fr 1.1fr;
+      gap:24px;
+      align-items:stretch;
+    }
+
+    .price-note{
+      background:linear-gradient(135deg,#f7f1eb 0%,#fdfbfa 100%);
+      border:1px solid var(--line);
+      border-radius:26px;
+      padding:28px;
+    }
+
+    .price-box{
+      background:linear-gradient(160deg,#2f2a26 0%,#463f38 100%);
+      color:#fff;
+      border-radius:30px;
+      padding:34px;
+      box-shadow:0 18px 40px rgba(0,0,0,.18);
+    }
+
+    .price-box .small{
+      color:rgba(255,255,255,.72);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+      font-size:13px;
+    }
+
+    .price{
+      font-size:clamp(3rem, 6vw, 5rem);
+      line-height:1;
+      margin:12px 0 8px;
+      font-weight:900;
+      letter-spacing:-2px;
+    }
+
+    .price-box p{
+      color:rgba(255,255,255,.84);
+      max-width:540px;
+    }
+
+    .checklist{
+      display:grid;
+      gap:12px;
+      margin:20px 0 26px;
+    }
+
+    .check{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      color:inherit;
+    }
+
+    .check-bullet{
+      width:22px;
+      height:22px;
+      min-width:22px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      display:grid;
+      place-items:center;
+      font-size:13px;
+      margin-top:1px;
+    }
+
+    .faq{
+      display:grid;
+      gap:14px;
+      max-width:900px;
+      margin:0 auto;
+    }
+
+    details{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 20px;
+      box-shadow:var(--shadow);
+    }
+
+    summary{
+      cursor:pointer;
+      font-weight:700;
+      list-style:none;
+    }
+
+    summary::-webkit-details-marker{
+      display:none;
+    }
+
+    details p{
+      color:var(--muted);
+      margin:12px 0 0;
+    }
+
+    .cta{
+      padding:24px 0 70px;
+    }
+
+    .cta-box{
+      background:linear-gradient(135deg,var(--brand),#9a55d7 60%, var(--brand-2));
+      color:#fff;
+      border-radius:32px;
+      padding:36px;
+      box-shadow:0 20px 50px rgba(108,76,241,.28);
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:20px;
+      align-items:center;
+    }
+
+    .cta-box h2{
+      margin:0 0 10px;
+      font-size:clamp(1.8rem, 4vw, 3rem);
+      line-height:1.05;
+    }
+
+    .cta-box p{
+      margin:0;
+      color:rgba(255,255,255,.88);
+      max-width:700px;
+    }
+
+    .cta-actions{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:flex-end;
+    }
+
+    .btn-white{
+      background:#fff;
+      color:var(--brand);
+      font-weight:800;
+    }
+
+    .btn-ghost{
+      background:rgba(255,255,255,.14);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.26);
+    }
+
+    footer{
+      padding:18px 0 40px;
+      color:var(--muted);
+      font-size:14px;
+      text-align:center;
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,
+      .pricing,
+      .cta-box{
+        grid-template-columns:1fr;
+      }
+
+      .cards{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .steps{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .cta-actions{
+        align-items:flex-start;
+      }
+    }
+
+    @media (max-width: 700px){
+      .nav-links{
+        display:none;
+      }
+
+      .hero{
+        padding-top:42px;
+      }
+
+      .hero-points,
+      .cards,
+      .steps,
+      .months{
+        grid-template-columns:1fr;
+      }
+
+      .card,
+      .step,
+      .price-note,
+      .price-box{
+        padding:22px;
+      }
+
+      .cta-box{
+        padding:28px 22px;
+      }
+
+      .btn{
+        width:100%;
+      }
+
+      .hero-actions{
+        flex-direction:column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap nav">
+      <a href="#" class="brand">
+        <div class="brand-badge">D</div>
+        <div>
+          <div>DirectBooking Calendar</div>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a href="#funciona">Cómo funciona</a>
+        <a href="#beneficios">Ventajas</a>
+        <a href="#precio">Precio</a>
+        <a href="#faq">FAQ</a>
+      </div>
+
+      <a class="btn btn-primary" href="https://wa.me/34617414914?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20DirectBooking%20Calendar">Solicitar demo</a>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Reservas directas sin comisiones</div>
+        <h1>Convierte tu web en un canal de reservas directas</h1>
+        <p class="lead">
+          Calendario inteligente para casas rurales, apartamentos turísticos y pequeños alojamientos.
+          Muestra disponibilidad real, sincroniza Booking y Airbnb, calcula precio orientativo y recibe consultas directas por WhatsApp.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://wa.me/34617414914?text=Hola,%20quiero%20ver%20una%20demo%20del%20calendario">Quiero una demo</a>
+          <a class="btn btn-secondary" href="#precio">Ver precio</a>
+        </div>
+
+        <div class="hero-points">
+          <div class="mini-point">✅ Sin cuotas mensuales</div>
+          <div class="mini-point">✅ Sin comisiones por reserva</div>
+          <div class="mini-point">✅ Sincronizado con Booking y Airbnb</div>
+          <div class="mini-point">✅ Integrable en cualquier web</div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="calendar-mock">
+          <div class="calendar-head">
+            <span>Vista anual de disponibilidad</span>
+            <span>Actualizado automáticamente</span>
+          </div>
+
+          <div class="legend">
+            <span class="tag"><span class="dot dot-green"></span>Libre</span>
+            <span class="tag"><span class="dot dot-pink"></span>Alojamiento 1</span>
+            <span class="tag"><span class="dot dot-purple"></span>Alojamiento 2</span>
+            <span class="tag"><span class="dot dot-mix"></span>Completo</span>
+          </div>
+
+          <div class="months">
+            <div class="month">
+              <strong>Abril</strong>
+              <div class="days">
+                <div class="day free"></div><div class="day free"></div><div class="day free"></div><div class="day busy-a"></div><div class="day busy-a"></div><div class="day free"></div><div class="day free"></div>
+                <div class="day free"></div><div class="day busy-b"></div><div class="day busy-b"></div><div class="day free"></div><div class="day free"></div><div class="day busy-all"></div><div class="day busy-all"></div>
+              </div>
+            </div>
+            <div class="month">
+              <strong>Mayo</strong>
+              <div class="days">
+                <div class="day free"></div><div class="day free"></div><div class="day free"></div><div class="day free"></div><div class="day busy-a"></div><div class="day busy-a"></div><div class="day free"></div>
+                <div class="day free"></div><div class="day free"></div><div class="day busy-b"></div><div class="day busy-b"></div><div class="day free"></div><div class="day free"></div><div class="day free"></div>
+              </div>
+            </div>
+            <div class="month">
+              <strong>Junio</strong>
+              <div class="days">
+                <div class="day free"></div><div class="day busy-a"></div><div class="day busy-a"></div><div class="day free"></div><div class="day free"></div><div class="day busy-b"></div><div class="day busy-b"></div>
+                <div class="day free"></div><div class="day free"></div><div class="day busy-all"></div><div class="day busy-all"></div><div class="day free"></div><div class="day free"></div><div class="day free"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="beneficios">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Qué consigues con DirectBooking Calendar</h2>
+        <p>No vendes solo disponibilidad. Vendes claridad, confianza y más oportunidades de reserva directa.</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="icon">🔄</div>
+          <h3>Sincronización automática</h3>
+          <p>Conecta Booking y Airbnb mediante iCal para evitar dobles reservas y mostrar disponibilidad real.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">📅</div>
+          <h3>Calendario inteligente</h3>
+          <p>El cliente selecciona fechas válidas, el sistema bloquea rangos imposibles y aplica estancia mínima.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">💬</div>
+          <h3>Consultas directas por WhatsApp</h3>
+          <p>Recibe mensajes estructurados con fechas, noches, huéspedes y precio orientativo listos para responder.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">💶</div>
+          <h3>Sin comisiones</h3>
+          <p>Aumenta reservas directas desde tu propia web sin depender siempre de las plataformas.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">🌍</div>
+          <h3>Multiidioma</h3>
+          <p>Disponible en español, euskera e inglés para facilitar consultas de clientes nacionales e internacionales.</p>
+        </div>
+
+        <div class="card">
+          <div class="icon">📱</div>
+          <h3>Diseño adaptado a móvil</h3>
+          <p>Optimizado para móviles, tablets y ordenadores. Porque hoy la mayoría reserva con un pulgar y poca paciencia.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="funciona">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Cómo funciona</h2>
+        <p>Un proceso simple para el cliente y muy práctico para el propietario.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>El cliente entra en tu web</h3>
+          <p>Consulta un calendario claro con disponibilidad anual real y actualizada automáticamente.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Selecciona sus fechas</h3>
+          <p>El sistema valida entrada, salida, noches mínimas y disponibilidad por alojamiento.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Ve precio orientativo</h3>
+          <p>Antes de consultar, obtiene una estimación que mejora la calidad de la solicitud.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Te escribe por WhatsApp</h3>
+          <p>Recibes la consulta completa con todos los datos necesarios para responder rápido y cerrar la reserva.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Mucho más sencillo que un PMS. Mucho más útil que un calendario estático.</h2>
+        <p>Ideal para alojamientos pequeños que quieren reservas directas sin meterse en un Everest tecnológico.</p>
+      </div>
+
+      <div class="compare">
+        <table>
+          <thead>
+            <tr>
+              <th>Características</th>
+              <th>DirectBooking Calendar</th>
+              <th>Plataformas / PMS tradicionales</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Pago único</strong></td>
+              <td class="good">Sí</td>
+              <td class="bad">Normalmente no</td>
+            </tr>
+            <tr>
+              <td><strong>Cuotas mensuales</strong></td>
+              <td class="good">No</td>
+              <td class="bad">Sí</td>
+            </tr>
+            <tr>
+              <td><strong>Comisión por reserva directa</strong></td>
+              <td class="good">0 %</td>
+              <td class="bad">Variable / no aplica</td>
+            </tr>
+            <tr>
+              <td><strong>Sincronización Booking + Airbnb</strong></td>
+              <td class="good">Sí</td>
+              <td class="good">Sí</td>
+            </tr>
+            <tr>
+              <td><strong>Consulta directa por WhatsApp</strong></td>
+              <td class="good">Sí</td>
+              <td class="bad">No siempre</td>
+            </tr>
+            <tr>
+              <td><strong>Instalación sencilla en cualquier web</strong></td>
+              <td class="good">Sí</td>
+              <td class="bad">A menudo más compleja</td>
+            </tr>
+            <tr>
+              <td><strong>Ideal para pequeños alojamientos</strong></td>
+              <td class="good">Sí, especialmente</td>
+              <td class="bad">A veces sobredimensionado</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="precio">
+    <div class="wrap pricing">
+      <div class="price-note">
+        <div class="eyebrow">Precio simple y claro</div>
+        <h2 style="margin-top:0;">Una sola reserva directa puede amortizarlo</h2>
+        <p style="color:var(--muted);">
+          Si una plataforma te cobra entre un 12 % y un 18 % de comisión, una reserva de 500 € puede costarte entre 60 € y 90 €.
+          Con DirectBooking Calendar, esa reserva directa llega sin comisión.
+        </p>
+        <p style="color:var(--muted);">
+          Traducido al castellano rural: el calendario puede pagarse solo bastante antes de que llegue el próximo huésped con ganas de desconectar.
+        </p>
+      </div>
+
+      <div class="price-box">
+        <div class="small">Pago único</div>
+        <div class="price">199€</div>
+        <p>Instalación y configuración del calendario para tu alojamiento, sin cuotas mensuales y sin comisiones por reserva directa.</p>
+
+        <div class="checklist">
+          <div class="check"><span class="check-bullet">✓</span><span>Sincronización con Booking y Airbnb</span></div>
+          <div class="check"><span class="check-bullet">✓</span><span>Configuración de precios orientativos</span></div>
+          <div class="check"><span class="check-bullet">✓</span><span>Reglas de estancia mínima</span></div>
+          <div class="check"><span class="check-bullet">✓</span><span>Formulario y envío por WhatsApp</span></div>
+          <div class="check"><span class="check-bullet">✓</span><span>Adaptación a móvil y escritorio</span></div>
+          <div class="check"><span class="check-bullet">✓</span><span>Integración por iframe o enlace directo</span></div>
+        </div>
+
+        <a class="btn btn-white" href="https://wa.me/34617414914?text=Hola,%20quiero%20instalar%20DirectBooking%20Calendar%20en%20mi%20web">Solicitar instalación</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Preguntas frecuentes</h2>
+        <p>Las típicas dudas razonables antes de dar el sí.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>¿Necesito cambiar mi página web actual?</summary>
+          <p>No. El calendario puede integrarse mediante iframe o enlace directo, por lo que funciona con prácticamente cualquier web ya existente.</p>
+        </details>
+
+        <details>
+          <summary>¿Se sincroniza realmente con Booking y Airbnb?</summary>
+          <p>Sí. Utiliza enlaces iCal para leer la disponibilidad y reflejar automáticamente los días ocupados.</p>
+        </details>
+
+        <details>
+          <summary>¿Sirve si tengo más de un alojamiento o habitación?</summary>
+          <p>Sí. El sistema puede gestionar disponibilidad por alojamiento y mostrar ocupación parcial o completa.</p>
+        </details>
+
+        <details>
+          <summary>¿Puedo poner noches mínimas según temporada?</summary>
+          <p>Sí. Se pueden aplicar reglas como mínimo 2 noches en temporada media o 5 noches en julio y agosto.</p>
+        </details>
+
+        <details>
+          <summary>¿Hay cuotas mensuales?</summary>
+          <p>No. El sistema está planteado con pago único. Sin suscripción y sin comisiones por reserva directa.</p>
+        </details>
+
+        <details>
+          <summary>¿Qué necesito para ponerlo en marcha?</summary>
+          <p>Básicamente tus enlaces iCal de Booking y Airbnb, tus precios orientativos y el número de WhatsApp donde quieres recibir las consultas.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <div class="cta-box">
+        <div>
+          <h2>Empieza a captar reservas directas desde tu propia web</h2>
+          <p>
+            Menos dependencia de las plataformas, más contacto directo con el cliente y un sistema claro, moderno y fácil de usar.
+          </p>
+        </div>
+
+        <div class="cta-actions">
+          <a class="btn btn-white" href="https://wa.me/34617414914?text=Hola,%20quiero%20una%20demo%20de%20DirectBooking%20Calendar">Pedir demo por WhatsApp</a>
+          <a class="btn btn-ghost" href="mailto:etxearekin@gmail.com">Solicitar información por email</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      © 2026 DirectBooking Calendar · Sistema de reservas directas para alojamientos turísticos
+    </div>
+  </footer>
+
+</body>
+</html>
